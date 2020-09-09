@@ -36,6 +36,8 @@
 // Handling fill mode
 - (void)recalculateViewGeometry;
 
+@property (assign, nonatomic) CGRect newBounds;
+
 @end
 
 @implementation GPUImageView
@@ -60,6 +62,8 @@
 		return nil;
     }
     
+    self.newBounds = CGRectMake(0, 0, CGRectGetWidth(frame), CGRectGetHeight(frame));
+    
     [self commonInit];
     
     return self;
@@ -79,7 +83,7 @@
 
 - (void)commonInit;
 {
-    // Set scaling to account for Retina display	
+    // Set scaling to account for Retina display
     if ([self respondsToSelector:@selector(setContentScaleFactor:)])
     {
         self.contentScaleFactor = [[UIScreen mainScreen] scale];
@@ -128,6 +132,11 @@
         _fillMode = kGPUImageFillModePreserveAspectRatio;
         [self createDisplayFramebuffer];
     });
+}
+
+- (void)setFrame:(CGRect)frame {
+    [super setFrame:frame];
+    self.newBounds = self.bounds;
 }
 
 - (void)layoutSubviews {
@@ -186,8 +195,8 @@
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, displayRenderbuffer);
 	
     __unused GLuint framebufferCreationStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    NSAssert(framebufferCreationStatus == GL_FRAMEBUFFER_COMPLETE, @"Failure with display framebuffer generation for display of size: %f, %f", self.bounds.size.width, self.bounds.size.height);
-    boundsSizeAtFrameBufferEpoch = self.bounds.size;
+    NSAssert(framebufferCreationStatus == GL_FRAMEBUFFER_COMPLETE, @"Failure with display framebuffer generation for display of size: %f, %f", self.newBounds.size.width, self.newBounds.size.height);
+    boundsSizeAtFrameBufferEpoch = self.newBounds.size;
 
     [self recalculateViewGeometry];
 }
@@ -235,12 +244,12 @@
     runSynchronouslyOnVideoProcessingQueue(^{
         CGFloat heightScaling, widthScaling;
         
-        CGSize currentViewSize = self.bounds.size;
+        CGSize currentViewSize = self.newBounds.size;
         
         //    CGFloat imageAspectRatio = inputImageSize.width / inputImageSize.height;
         //    CGFloat viewAspectRatio = currentViewSize.width / currentViewSize.height;
         
-        CGRect insetRect = AVMakeRectWithAspectRatioInsideRect(inputImageSize, self.bounds);
+        CGRect insetRect = AVMakeRectWithAspectRatioInsideRect(inputImageSize, self.newBounds);
         
         switch(_fillMode)
         {
@@ -432,12 +441,12 @@
 {
     if ([self respondsToSelector:@selector(setContentScaleFactor:)])
     {
-        CGSize pointSize = self.bounds.size;
+        CGSize pointSize = self.newBounds.size;
         return CGSizeMake(self.contentScaleFactor * pointSize.width, self.contentScaleFactor * pointSize.height);
     }
     else
     {
-        return self.bounds.size;
+        return self.newBounds.size;
     }
 }
 
@@ -480,5 +489,7 @@
     _fillMode = newValue;
     [self recalculateViewGeometry];
 }
+
+
 
 @end
