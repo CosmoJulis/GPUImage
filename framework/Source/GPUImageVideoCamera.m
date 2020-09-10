@@ -215,7 +215,15 @@ void setColorConversion709( GLfloat conversionMatrix[9] )
         return nil;
 	}
     
-	_captureSessionPreset = sessionPreset;
+    if (!sessionPreset) {
+        if ([_captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080]) {
+            _captureSessionPreset = AVCaptureSessionPreset1920x1080;
+        } else if ([_captureSession canSetSessionPreset:AVCaptureSessionPreset1280x720]) {
+            _captureSessionPreset = AVCaptureSessionPreset1280x720;
+        }
+    } else {
+        _captureSessionPreset = sessionPreset;
+    }
     [_captureSession setSessionPreset:_captureSessionPreset];
 
 // This will let you get 60 FPS video from the 720p preset on an iPhone 4S, but only that device and that preset

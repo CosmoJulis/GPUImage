@@ -38,6 +38,8 @@
 
 @property (assign, nonatomic) CGRect newBounds;
 
+@property (weak, nonatomic) CALayer * mLayer;
+
 @end
 
 @implementation GPUImageView
@@ -93,6 +95,7 @@
     self.opaque = YES;
     self.hidden = NO;
     CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
+    self.mLayer = eaglLayer;
     eaglLayer.opaque = YES;
     eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
 
@@ -174,7 +177,7 @@
     glGenRenderbuffers(1, &displayRenderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, displayRenderbuffer);
 	
-    [[[GPUImageContext sharedImageProcessingContext] context] renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+    [[[GPUImageContext sharedImageProcessingContext] context] renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.mLayer];
 	
     GLint backingWidth, backingHeight;
 
